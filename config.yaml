@@ -1,1 +1,8 @@
-currency: eur
+currency: usd
+convert_currency: eur
+orders:
+  - mayer: 0.8
+    volume: 0.5
+  - mayer: 0.79
+    volume: 0.5
+cancel_current_orders: true
