@@ -3,17 +3,23 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/yaml"
+	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/file"
 )
 
 type config struct {
 	Currency  string `koanf:"currency"`
 	CCurrency string `koanf:"convert_currency"`
-	Orders    []struct {
+	Coinbase  struct {
+		Key    string `koanf:"key"`
+		Secret string `koanf:"secret"`
+	} `koanf:"coinbase"`
+	Orders []struct {
 		Mayer  float64 `koanf:"mayer"`
 		Volume float64 `koanf:"volume"`
 	} `koanf:"orders"`
@@ -30,17 +36,16 @@ func main() {
 	if err := k.Load(file.Provider("config.yaml"), yaml.Parser()); err != nil {
 		log.Fatalf("error loading config: %v", err)
 	}
+	_ = k.Load(env.Provider("MAYERBOT_", ".", func(s string) string {
+		return strings.Replace(strings.ToLower(
+			strings.TrimPrefix(s, "MAYERBOT_")), "_", ".", -1)
+	}), nil)
 	if err := k.Unmarshal("", &conf); err != nil {
 		log.Fatalf("error parsing config: %v", err)
 	}
-	vol := 0.0
-	for _, order := range conf.Orders {
-		vol += order.Volume
+	if err := validateConfig(conf); err != nil {
+		log.Fatalf("error validating config: %v", err)
 	}
-	if vol > 1 {
-		log.Fatalf("sum of all order volumes must be equal or less then 1. yours is %.2f", vol)
-	}
-	// telegramToken = os.Getenv("TELEGRAM_APITOKEN")
 
 	printWelcome()
 	avg := getAvgPrice()
@@ -59,4 +64,21 @@ func main() {
 		}
 		log.Print(msg)
 	}
+}
+
+func validateConfig(conf config) error {
+	if conf.Coinbase.Key == "" {
+		return fmt.Errorf("value of COINBASE_KEY is not set")
+	}
+	if conf.Coinbase.Secret == "" {
+		return fmt.Errorf("value of COINBASE_SECRET is not set")
+	}
+	vol := 0.0
+	for _, order := range conf.Orders {
+		vol += order.Volume
+	}
+	if vol > 1 {
+		return fmt.Errorf("sum of all order volumes must be equal or less then 1. yours is %.2f", vol)
+	}
+	return nil
 }

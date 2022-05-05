@@ -4,7 +4,7 @@ VERSION?=$$(git describe --tags --always)
 LDFLAGS="-s -w -X main.version=$(VERSION)-$(GIT_REV) -X main.date=$(DATE)"
 goos?=$$(go env GOOS)
 goarch?=$$(go env GOARCH)
-file:=mayer-bot
+file:=mayerbot
 package:=$(file)_$(goos)_$(goarch)
 
 GREEN  := $(shell tput -Txterm setaf 2)
