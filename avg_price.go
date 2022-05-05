@@ -7,19 +7,19 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
+	"strconv"
 )
 
+const days = 200
+
 type response struct {
-	Prices       [][]float64 `json:"prices"`
-	MarketCaps   [][]float64 `json:"market_caps"`
-	TotalVolumes [][]float64 `json:"total_volumes"`
+	Prices [][]float64 `json:"prices"`
 }
 
-func getAvgPrice() float64 {
+func getAvgPrice() (avg float64) {
 	var (
 		data response
-		cur  = os.Getenv("CURRENCY")
+		cur  = conf.Currency
 	)
 
 	ctx := context.Background()
@@ -30,8 +30,7 @@ func getAvgPrice() float64 {
 	req, _ := http.NewRequestWithContext(ctx, "GET", "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart", nil)
 	req.Header = header
 	q := req.URL.Query()
-	q.Add("days", "200")
-	q.Add("interval", "daily")
+	q.Add("days", strconv.Itoa(days-1))
 	q.Add("vs_currency", cur)
 	req.URL.RawQuery = q.Encode()
 
@@ -47,13 +46,10 @@ func getAvgPrice() float64 {
 	}
 	_ = res.Body.Close()
 	sum := 0.0
-	count := 0
 	for _, day := range data.Prices {
 		sum += day[1]
-		count++
 	}
-	var avg float64
-	avg = sum / float64(count)
-	fmt.Printf("200 day moving avarage: %s%.2f%s(%s)\n", blue, avg, reset, cur)
-	return avg
+	avg = sum / float64(days)
+	fmt.Printf("%d day moving avarage: %s%.2f%s(%s)\n", days, blue, avg, reset, cur)
+	return
 }
