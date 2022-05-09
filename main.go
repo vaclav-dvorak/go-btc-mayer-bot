@@ -13,9 +13,9 @@ import (
 )
 
 type config struct {
-	Currency  string `koanf:"currency"`
-	CCurrency string `koanf:"convert_currency"`
-	Coinbase  struct {
+	CalcCurrency string `koanf:"calculation_currency"`
+	BuyCurrency  string `koanf:"buy_currency"`
+	Coinbase     struct {
 		Key    string `koanf:"key"`
 		Secret string `koanf:"secret"`
 	} `koanf:"coinbase"`
@@ -48,26 +48,26 @@ func main() {
 	}
 
 	printWelcome()
-	avg := getAvgPrice()
+	avg := getAvgPrice(conf.CalcCurrency)
 
-	price := getCurrentPrice(conf.Currency)
+	price := getCurrentPrice(conf.CalcCurrency)
 	curMayer := price / avg
-	log.Printf("current price is at %s%.2f%s of mayer multiple", cyan, curMayer, reset)
+	log.Printf("current price is at %s%.3f%s of mayer multiple", cyan, curMayer, reset)
 
 	rate := 1.0
-	if conf.Currency == "usd" && conf.CCurrency != "" {
-		rate = getConversionRate(conf.CCurrency)
+	if conf.BuyCurrency != "" {
+		rate = getConversionRate(conf.CalcCurrency, conf.BuyCurrency)
 	}
 
 	for _, order := range conf.Orders {
 		target := order.Mayer
 		msg := ""
 		if target > curMayer {
-			msg += fmt.Sprintf("%s%.2f%s target is above current mayer multiple %s%.2f%s it would be best to buy spot price %s%.2f%s", cyan, target, reset, cyan, curMayer, reset, blue, price, reset)
+			msg += fmt.Sprintf("%s%.3f%s target is above current mayer multiple %s%.3f%s it would be best to buy spot price %s", cyan, target, reset, cyan, curMayer, reset, fmtPrice(price, conf.CalcCurrency))
 		} else {
-			msg += fmt.Sprintf("%s%.2f%s target = %s%.2f%s(%s%s%s)", cyan, target, reset, blue, avg*target, reset, green, conf.Currency, reset)
-			if rate != 1.0 {
-				msg += fmt.Sprintf(" or converted %s%.2f%s(%s%s%s)\n", blue, avg*target*rate, reset, green, conf.CCurrency, reset)
+			msg += fmt.Sprintf("%s%.3f%s target = %s", cyan, target, reset, fmtPrice(avg*target, conf.CalcCurrency))
+			if conf.BuyCurrency != "" {
+				msg += fmt.Sprintf(" or converted %s\n", fmtPrice(avg*target*rate, conf.BuyCurrency))
 			} else {
 				msg += "\n"
 			}

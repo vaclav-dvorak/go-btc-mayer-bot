@@ -5,3 +5,13 @@ repos:
       - id: go-fmt
       - id: go-mod-tidy
       - id: golangci-lint
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.2.0
+    hooks:
+      - id: check-added-large-files
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: check-merge-conflict

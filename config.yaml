@@ -1,5 +1,6 @@
-currency: usd
-convert_currency: eur
+# calculation_currency: eur
+calculation_currency: usd
+buy_currency: eur
 orders:
   - mayer: 0.8
     volume: 0.5

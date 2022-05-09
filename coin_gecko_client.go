@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 const days = 200
@@ -23,10 +24,9 @@ type priceResponse struct {
 	Price map[string]float64 `json:"bitcoin"`
 }
 
-func getAvgPrice() (avg float64) {
+func getAvgPrice(cur string) (avg float64) {
 	var (
 		data avgResponse
-		cur  = conf.Currency
 	)
 
 	ctx := context.Background()
@@ -57,11 +57,11 @@ func getAvgPrice() (avg float64) {
 		sum += day[1]
 	}
 	avg = sum / float64(days)
-	log.Printf("%d day moving avarage: %s%.2f%s(%s%s%s)\n", days, blue, avg, reset, green, cur, reset)
+	log.Printf("%d day moving avarage: %s\n", days, fmtPrice(avg, cur))
 	return
 }
 
-func getConversionRate(cur string) (rate float64) {
+func getConversionRate(sourceCur, targetCur string) (rate float64) {
 	var (
 		data rateResponse
 	)
@@ -75,7 +75,7 @@ func getConversionRate(cur string) (rate float64) {
 	req.Header = header
 	q := req.URL.Query()
 	q.Add("ids", "tether")
-	q.Add("vs_currencies", cur)
+	q.Add("vs_currencies", strings.Join([]string{sourceCur, targetCur}, ","))
 	req.URL.RawQuery = q.Encode()
 
 	res, err := http.DefaultClient.Do(req)
@@ -89,8 +89,8 @@ func getConversionRate(cur string) (rate float64) {
 		log.Print(err)
 	}
 	_ = res.Body.Close()
-	rate = data.Rate[cur]
-	log.Printf("exchange rate for %s%s%s: %s%.4f%s\n", green, cur, reset, blue, rate, reset)
+	rate = data.Rate[targetCur] / data.Rate[sourceCur]
+	log.Printf("exchange rate for %s%s%s: %s%.4f%s\n", green, targetCur, reset, blue, rate, reset)
 	return
 }
 
@@ -123,6 +123,6 @@ func getCurrentPrice(cur string) (price float64) {
 	}
 	_ = res.Body.Close()
 	price = data.Price[cur]
-	log.Printf("current price of bitcoin: %s%.2f%s(%s%s%s)\n", blue, price, reset, green, cur, reset)
+	log.Printf("current price of bitcoin: %s\n", fmtPrice(price, cur))
 	return
 }
