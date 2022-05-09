@@ -49,6 +49,11 @@ func main() {
 
 	printWelcome()
 	avg := getAvgPrice()
+
+	price := getCurrentPrice(conf.Currency)
+	curMayer := price / avg
+	log.Printf("current price is at %s%.2f%s of mayer multiple", cyan, curMayer, reset)
+
 	rate := 1.0
 	if conf.Currency == "usd" && conf.CCurrency != "" {
 		rate = getConversionRate(conf.CCurrency)
@@ -56,11 +61,16 @@ func main() {
 
 	for _, order := range conf.Orders {
 		target := order.Mayer
-		msg := fmt.Sprintf("%.2f target = %s%.2f%s(%s%s%s)", target, blue, avg*target, reset, green, conf.Currency, reset)
-		if rate != 1.0 {
-			msg += fmt.Sprintf(" or converted %s%.2f%s(%s%s%s)\n", blue, avg*target*rate, reset, green, conf.CCurrency, reset)
+		msg := ""
+		if target > curMayer {
+			msg += fmt.Sprintf("%s%.2f%s target is above current mayer multiple %s%.2f%s it would be best to buy spot price %s%.2f%s", cyan, target, reset, cyan, curMayer, reset, blue, price, reset)
 		} else {
-			msg += "\n"
+			msg += fmt.Sprintf("%s%.2f%s target = %s%.2f%s(%s%s%s)", cyan, target, reset, blue, avg*target, reset, green, conf.Currency, reset)
+			if rate != 1.0 {
+				msg += fmt.Sprintf(" or converted %s%.2f%s(%s%s%s)\n", blue, avg*target*rate, reset, green, conf.CCurrency, reset)
+			} else {
+				msg += "\n"
+			}
 		}
 		log.Print(msg)
 	}
