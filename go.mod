@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/joho/godotenv v1.4.0
 	github.com/knadh/koanf v1.4.1
+	github.com/sirupsen/logrus v1.8.1
 )
 
 require (
