@@ -16,8 +16,8 @@ var (
 )
 
 func printWelcome() {
-	for i, line := range logoSmall {
-		fmt.Printf("%s%s%s", orange, line, reset)
+	for i := 0; i < len(logoSmall); i++ {
+		fmt.Printf("%s%s%s", orange, logoSmall[i], reset)
 		if i < (len(logoSmall) - 1) {
 			fmt.Print("\n")
 		}

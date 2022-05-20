@@ -59,8 +59,8 @@ func getAvgPrice(cur string) (avg float64, err error) {
 	}
 	_ = res.Body.Close()
 	sum := 0.0
-	for _, day := range data.Prices {
-		sum += day[1]
+	for i := 0; i < len(data.Prices); i++ {
+		sum += data.Prices[i][1]
 	}
 	avg = sum / float64(days)
 	log.Infof("%d day moving average: %s\n", days, fmtPrice(avg, cur))
