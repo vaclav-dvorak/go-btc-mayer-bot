@@ -54,10 +54,12 @@ func getAvgPrice(cur string) (avg float64, err error) {
 	}
 
 	body, _ := ioutil.ReadAll(res.Body)
+	defer func() {
+		_ = res.Body.Close()
+	}()
 	if err = json.Unmarshal(body, &data); err != nil {
 		return
 	}
-	_ = res.Body.Close()
 	sum := 0.0
 	for i := 0; i < len(data.Prices); i++ {
 		sum += data.Prices[i][1]
@@ -92,10 +94,12 @@ func getConversionRate(sourceCur, targetCur string) (rate float64, err error) {
 	}
 
 	body, _ := ioutil.ReadAll(res.Body)
+	defer func() {
+		_ = res.Body.Close()
+	}()
 	if err = json.Unmarshal(body, &data); err != nil {
 		return
 	}
-	_ = res.Body.Close()
 	rate = data.Rate[targetCur] / data.Rate[sourceCur]
 	log.Infof("exchange rate for %s%s%s: %s%.4f%s\n", green, targetCur, reset, blue, rate, reset)
 	return
@@ -126,10 +130,12 @@ func getCurrentPrice(cur string) (price float64, err error) {
 	}
 
 	body, _ := ioutil.ReadAll(res.Body)
+	defer func() {
+		_ = res.Body.Close()
+	}()
 	if err = json.Unmarshal(body, &data); err != nil {
 		return
 	}
-	_ = res.Body.Close()
 	price = data.Price[cur]
 	log.Infof("current price of bitcoin: %s\n", fmtPrice(price, cur))
 	return
