@@ -1,9 +1,10 @@
+// Package main implements whole functionality of this tool
 package main
 
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -43,7 +44,7 @@ func getAvgPrice(cur string) (avg float64, err error) {
 	req, _ := http.NewRequestWithContext(ctx, "GET", "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart", nil)
 	req.Header = header
 	q := req.URL.Query()
-	q.Add("days", strconv.Itoa(days-1))
+	q.Add("days", strconv.Itoa(days))
 	q.Add("vs_currency", cur)
 	req.URL.RawQuery = q.Encode()
 
@@ -53,7 +54,7 @@ func getAvgPrice(cur string) (avg float64, err error) {
 		return
 	}
 
-	body, _ := ioutil.ReadAll(res.Body)
+	body, _ := io.ReadAll(res.Body)
 	defer func() {
 		_ = res.Body.Close()
 	}()
@@ -61,7 +62,7 @@ func getAvgPrice(cur string) (avg float64, err error) {
 		return
 	}
 	sum := 0.0
-	for i := 0; i < len(data.Prices); i++ {
+	for i := 0; i < len(data.Prices)-1; i++ { //? last value is current price so we ignore it
 		sum += data.Prices[i][1]
 	}
 	avg = sum / float64(days)
@@ -93,7 +94,7 @@ func getConversionRate(sourceCur, targetCur string) (rate float64, err error) {
 		return
 	}
 
-	body, _ := ioutil.ReadAll(res.Body)
+	body, _ := io.ReadAll(res.Body)
 	defer func() {
 		_ = res.Body.Close()
 	}()
@@ -129,7 +130,7 @@ func getCurrentPrice(cur string) (price float64, err error) {
 		return
 	}
 
-	body, _ := ioutil.ReadAll(res.Body)
+	body, _ := io.ReadAll(res.Body)
 	defer func() {
 		_ = res.Body.Close()
 	}()
