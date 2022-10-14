@@ -61,11 +61,13 @@ func getAvgPrice(cur string) (avg float64, err error) {
 	if err = json.Unmarshal(body, &data); err != nil {
 		return
 	}
-	sum := 0.0
+
+	cnt, sum := 0, 0.0
 	for i := 0; i < len(data.Prices)-1; i++ { //? last value is current price so we ignore it
 		sum += data.Prices[i][1]
+		cnt++
 	}
-	avg = sum / float64(days)
+	avg = sum / float64(cnt)
 	log.Infof("%d day moving average: %s\n", days, fmtPrice(avg, cur))
 	return
 }
